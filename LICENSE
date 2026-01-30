@@ -1,21 +1,23 @@
-MIT License
+# Academic License
 
-Copyright (c) 2026 Betty Phipps
+Copyright (c) 2026 Link2Itinerary Team
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+This project is developed for academic purposes as part of the CEN4090L Software Engineering II course.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+## Academic Use
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+This software is provided for educational and academic purposes only. Students, faculty, and educational institutions are free to use, modify, and distribute this software for non-commercial educational purposes.
+
+## Restrictions
+
+- This software may not be used for commercial purposes without explicit permission from the authors.
+- Any derivative works must include attribution to the original authors.
+- This software is provided "as is" without warranty of any kind.
+
+## Attribution
+
+If you use this project or any portion of it in academic work, please provide appropriate attribution to the Link2Itinerary team.
+
+---
+
+*For academic use in CEN4090L Software Engineering course.*
