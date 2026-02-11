@@ -1,0 +1,27 @@
+{
+  "name": "link2itinerary",
+  "version": "1.0.0",
+  "description": "**About this file:** This is the main project README that provides an overview of the entire Link2Itinerary project. Start here to understand what the project does, who's working on it, and how the repository is organized. You'll find information about the tech stack, team structure, and links to detailed documentation for each part of the project (frontend, backend, database, and docs).",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bettyp23/Link2itinerary.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/bettyp23/Link2itinerary/issues"
+  },
+  "homepage": "https://github.com/bettyp23/Link2itinerary#readme",
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}
