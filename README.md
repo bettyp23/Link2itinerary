@@ -77,33 +77,94 @@ See [db/schema-plan.md](./db/schema-plan.md) for details.
 
 ### Prerequisites
 
-- **Node.js** (v18+ recommended)
-- **npm** or **yarn**
+- **Node.js** v18+ (recommended)
+- **npm** (comes with Node.js)
 - **Git**
-- **PostgreSQL** (for local development, when implemented)
-- **OpenAI API key** (to be configured later) (unsure)
+- **Supabase account** (for database access - ask project lead for invite)
 
-### Quick Start
+### Quick Start - Run Full Application
 
-1. **Clone the repository:**
-   ```bash
-   git clone <repository-url>
-   cd Link2itinerary
-   ```
+**1. Install Dependencies**
 
-2. **Explore the planning documents:**
-   - Review `/docs/` for project requirements and architecture
-   - Check `/frontend/README.md` for the 5 planned pages and component structure
-   - Check `/backend/README.md` for the 3 modules and API endpoints
-   - Review `/backend/api-contracts.md` for complete API specifications
-   - Review `/db/schema-plan.md` for database schema (MVP tables only)
+```bash
+# Backend
+cd backend
+npm install
+npm install openai cheerio @types/cheerio
 
-3. **Understand MVP scope:**
-   - Core features: Trip seed creation, teaser itinerary, full itinerary generation, preferences, cost estimation
-   - Excluded from MVP: Export, sharing, regeneration, versioning, user authentication
-   - See [PROJECT-SETUP-SUMMARY.md](./PROJECT-SETUP-SUMMARY.md) for detailed scope management
+# Frontend (new terminal)
+cd frontend
+npm install
+```
 
-4. **Implementation steps will be added as development progresses**
+**2. Configure Environment**
+
+```bash
+# Backend - create .env file
+cd backend
+cp .env.example .env
+# Edit .env and add:
+# - DATABASE_URL (Supabase connection string)
+# - OPENAI_API_KEY (optional, needed for Planner module)
+
+# Frontend - create .env file (optional, defaults work)
+cd frontend
+# Create .env file with:
+# VITE_API_BASE_URL=http://localhost:3000/api
+# VITE_USE_MOCKS=false
+```
+
+**3. Start Backend (Terminal 1)**
+
+```bash
+cd backend
+npm run start:dev
+```
+
+**Expected output:**
+```
+[Nest] LOG [NestApplication] Nest application successfully started
+```
+
+Backend runs on: **http://localhost:3000**
+
+**4. Start Frontend (Terminal 2)**
+
+```bash
+cd frontend
+npm run dev
+```
+
+**Expected output:**
+```
+VITE v5.x.x  ready in xxx ms
+➜  Local:   http://localhost:5173/
+```
+
+Frontend runs on: **http://localhost:5173**
+
+**5. Open Application**
+
+Open browser to: **http://localhost:5173**
+
+You should see the Landing Page. Navigate through the app to test the full flow.
+
+**Note:** If backend shows compilation errors about missing `openai` or `cheerio`, run `npm install openai cheerio @types/cheerio` in the backend directory.
+
+### Detailed Setup Instructions
+
+For complete setup instructions including troubleshooting, see:
+- **[Running Full Application Guide](./docs/DocumentationsMD/Running-Full-Application.md)** - Complete guide to running both servers
+- [backend/GETTING-STARTED.md](./backend/GETTING-STARTED.md) - Backend-specific setup
+- [frontend/README.md](./frontend/README.md) - Frontend-specific setup
+
+### Explore the Project
+
+- Review `/docs/` for project requirements and architecture
+- Check `/frontend/README.md` for the 5 planned pages and component structure
+- Check `/backend/README.md` for the 3 modules and API endpoints
+- Review `/backend/api-contracts.md` for complete API specifications
+- Review `/db/schema-plan.md` for database schema (MVP tables only)
 
 ## Project Status
 

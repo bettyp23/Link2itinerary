@@ -5,6 +5,12 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // Enable CORS to allow frontend (running on port 5173) to call backend API
+  app.enableCors({
+    origin: 'http://localhost:5173', // Vite dev server default port
+    credentials: true,
+  });
+
   // Enable global validation so DTOs automatically validate incoming requests.
   // whitelist: true  — strips any properties not defined in the DTO (security)
   // transform: true  — auto-converts types (e.g., string "3" → number 3)
