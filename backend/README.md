@@ -113,11 +113,13 @@ See [api-contracts.md](./api-contracts.md) for full request/response specificati
 ## Technology Stack
 
 - **Framework:** NestJS (TypeScript)
-- **Database ORM:** TypeORM or Prisma (TBD)
-- **LLM Client:** OpenAI SDK
+- **Database ORM:** TypeORM
+- **Database:** PostgreSQL (via Supabase)
+- **LLM Client:** OpenAI SDK (`openai` package)
+- **Web Scraping:** Cheerio (`cheerio` package) for HTML parsing
 - **Validation:** class-validator, class-transformer
 - **Testing:** Jest, Supertest
-- **Documentation:** Swagger/OpenAPI
+- **Documentation:** Swagger/OpenAPI (planned)
 
 ## Development Setup (To Be Implemented)
 

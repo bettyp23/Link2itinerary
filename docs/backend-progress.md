@@ -287,12 +287,57 @@ curl http://localhost:3000/api/trips
 
 ---
 
+## Session 4 — Missing Dependencies Fix (2026-03-16)
+
+### What was done
+
+1. **Identified missing dependencies**
+   - The `PlannerService` was importing `openai` and `cheerio` packages, but these were not listed in `package.json`
+   - This would cause runtime errors when the planner module tried to execute
+
+2. **Added missing dependencies to `package.json`**
+   - Added `openai: ^4.0.0` to dependencies (for OpenAI API integration)
+   - Added `cheerio: ^1.0.0` to dependencies (for HTML parsing and text extraction)
+   - Added `@types/cheerio: ^0.22.35` to devDependencies (TypeScript type definitions)
+
+3. **Updated documentation**
+   - Updated `backend/README.md` Technology Stack section to list all dependencies
+   - Added this session entry to `docs/backend-progress.md`
+
+### Dependencies added
+
+**Production dependencies:**
+- `openai` — Official OpenAI SDK for Node.js, used in `PlannerService` to call GPT-5.2 Responses API
+- `cheerio` — Fast, flexible HTML parser for extracting readable text from web pages
+
+**Development dependencies:**
+- `@types/cheerio` — TypeScript type definitions for Cheerio
+
+### For teammates: installing dependencies
+
+After pulling this branch, run:
+```bash
+cd backend
+npm install
+```
+
+This will install the newly added `openai` and `cheerio` packages along with their dependencies.
+
+### Notes
+
+- The `openai` package is required for the Planner module's LLM integration
+- The `cheerio` package is used to extract readable text from HTML when scraping travel links
+- Both packages are already being used in `src/planner/planner.service.ts`, so this fix ensures the code will actually run
+
+---
+
 ## Next steps
 
 - [x] Set up Supabase project and configure database connection in `app.module.ts`
 - [x] Create `.env.example` with placeholder values for teammates
 - [x] Build the **Trips module** (entity, DTO, service, controller)
 - [x] Connect to Supabase and test all Trips endpoints end-to-end
+- [x] Fix missing dependencies (`openai`, `cheerio`) in `package.json`
 - [ ] Build the **Planner module** (LLM orchestration, itinerary generation)
 - [ ] Build the **Estimator module** (cost calculations)
 - [ ] Add Swagger/OpenAPI documentation
