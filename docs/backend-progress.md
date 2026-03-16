@@ -331,6 +331,120 @@ This will install the newly added `openai` and `cheerio` packages along with the
 
 ---
 
+## Session 5 — Planner API Endpoints Implementation (2026-03-16)
+
+### What was done
+
+1. **Fixed API mismatches between frontend and backend**
+   - Frontend was calling `/api/planner/teaser` and `/api/planner/full` endpoints that didn't exist
+   - Backend only had `/api/planner/from-url` endpoint
+   - Added the two missing endpoints to match frontend expectations
+
+2. **Created request DTOs for new endpoints**
+   - **`TeaserPlannerRequestDto`** (`src/planner/dto/teaser-planner-request.dto.ts`):
+     - Validates `{ tripId: string }` request body
+     - Uses `@IsUUID()` to ensure valid UUID format
+   - **`FullPlannerRequestDto`** (`src/planner/dto/full-planner-request.dto.ts`):
+     - Validates `{ tripId: string, preferences: PreferencesDto }` request body
+     - Includes nested `PreferencesDto` with validation for interests, budget, pace, dietary, accessibility
+
+3. **Created response types matching frontend**
+   - **`PlannerTeaserResponse`** (`src/planner/types/planner-teaser-response.ts`):
+     - Matches frontend `PlannerTeaser` type exactly
+     - Includes: `id`, `tripId`, `type: "teaser"`, `days[]` with `theme` and `highlights[]`, `estimatedCost`, `generatedAt`, optional `vibeTags` and `bestTimeToGo`
+   - **`PlannerFullItineraryResponse`** (`src/planner/types/planner-full-response.ts`):
+     - Matches frontend `PlannerFullItinerary` type exactly
+     - Includes: `id`, `tripId`, `type: "full"`, `days[]` with `activities[]`, `totalEstimatedCost` with breakdown, `metadata`, `generatedAt`
+
+4. **Updated PlannerModule**
+   - Added `TripsModule` to imports array
+   - Allows `PlannerService` to inject `TripsService` for database access
+
+5. **Enhanced PlannerService with two new methods**
+   - **`generateTeaser(tripId: string)`**:
+     - Fetches trip from database using `TripsService.findOne(tripId)`
+     - Fetches HTML content from trip URL (or uses summary as fallback)
+     - Calls OpenAI with prompt optimized for 3-day teaser format
+     - Generates days with themes and highlights (not detailed activities)
+     - Returns `PlannerTeaserResponse` matching frontend expectations
+     - Includes error handling with fallback response
+   - **`generateFullItinerary(tripId: string, preferences)`**:
+     - Fetches trip from database
+     - Uses trip data + user preferences to build comprehensive prompt
+     - Calls OpenAI with prompt for detailed day-by-day itinerary
+     - Generates activities with times, locations, costs, booking URLs
+     - Calculates total activities and days for metadata
+     - Returns `PlannerFullItineraryResponse` matching frontend expectations
+     - Includes error handling with fallback response
+
+6. **Updated PlannerController with new endpoints**
+   - **`POST /api/planner/teaser`**: Calls `plannerService.generateTeaser(body.tripId)`
+   - **`POST /api/planner/full`**: Calls `plannerService.generateFullItinerary(body.tripId, body.preferences)`
+   - Kept existing `POST /api/planner/from-url` endpoint for backward compatibility
+
+### Key implementation details
+
+- **Database integration**: Both new methods fetch trip data from database using `TripsService`, ensuring data consistency
+- **Content extraction**: Reuses existing `fetchHtml()` and `extractText()` methods for URL scraping
+- **OpenAI prompt engineering**: Different prompts for teaser (themes/highlights) vs full (detailed activities with preferences)
+- **Date handling**: Properly handles Date objects from TypeORM, converts to ISO strings for API responses
+- **Error handling**: Comprehensive error handling with 404 for missing trips, fallback responses for API failures
+- **Type safety**: All response types match frontend TypeScript types exactly
+
+### Files created
+
+- `backend/src/planner/dto/teaser-planner-request.dto.ts`
+- `backend/src/planner/dto/full-planner-request.dto.ts`
+- `backend/src/planner/types/planner-teaser-response.ts`
+- `backend/src/planner/types/planner-full-response.ts`
+
+### Files modified
+
+- `backend/src/planner/planner.module.ts` (added TripsModule import)
+- `backend/src/planner/planner.service.ts` (added two new methods, injected TripsService)
+- `backend/src/planner/planner.controller.ts` (added two new endpoints)
+
+### Testing notes
+
+To test the new endpoints:
+
+```bash
+# Start backend server
+cd backend
+npm run start:dev
+
+# Test teaser endpoint
+curl -X POST http://localhost:3000/api/planner/teaser \
+  -H "Content-Type: application/json" \
+  -d '{"tripId": "your-trip-uuid-here"}'
+
+# Test full endpoint
+curl -X POST http://localhost:3000/api/planner/full \
+  -H "Content-Type: application/json" \
+  -d '{
+    "tripId": "your-trip-uuid-here",
+    "preferences": {
+      "interests": ["museums", "food"],
+      "budget": "moderate",
+      "pace": "relaxed",
+      "dietary": [],
+      "accessibility": []
+    }
+  }'
+```
+
+### For teammates
+
+The frontend can now successfully call:
+- `POST /api/planner/teaser` to generate 3-day teaser itineraries
+- `POST /api/planner/full` to generate full detailed itineraries with preferences
+
+Both endpoints require:
+- Valid `OPENAI_API_KEY` in `backend/.env`
+- Existing trip in database (created via `POST /api/trips/seed`)
+
+---
+
 ## Next steps
 
 - [x] Set up Supabase project and configure database connection in `app.module.ts`
@@ -338,7 +452,10 @@ This will install the newly added `openai` and `cheerio` packages along with the
 - [x] Build the **Trips module** (entity, DTO, service, controller)
 - [x] Connect to Supabase and test all Trips endpoints end-to-end
 - [x] Fix missing dependencies (`openai`, `cheerio`) in `package.json`
-- [ ] Build the **Planner module** (LLM orchestration, itinerary generation)
+- [x] Build the **Planner module** (LLM orchestration, itinerary generation)
+  - [x] Add `/api/planner/teaser` endpoint
+  - [x] Add `/api/planner/full` endpoint
+  - [x] Integrate with TripsService for database access
 - [ ] Build the **Estimator module** (cost calculations)
 - [ ] Add Swagger/OpenAPI documentation
 
