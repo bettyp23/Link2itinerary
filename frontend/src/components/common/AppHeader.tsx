@@ -1,9 +1,11 @@
 import { Link, NavLink, useLocation } from "react-router-dom";
+import { useAuthContext } from "../../context/AuthContext";
 
 const IS_MOCK_MODE = import.meta.env.VITE_USE_MOCKS === "true";
 
 export const AppHeader = () => {
   const { pathname } = useLocation();
+  const { isAuthenticated, user, logout } = useAuthContext();
 
   const isLanding = pathname === "/";
 
@@ -135,6 +137,43 @@ export const AppHeader = () => {
                 How it works
               </a>
             ) : null}
+
+            {!isAuthenticated ? (
+              <NavLink
+                to="/login"
+                style={({ isActive }) => ({
+                  padding: "6px 10px",
+                  borderRadius: 999,
+                  color: isActive
+                    ? "var(--color-text)"
+                    : "var(--color-text-muted)",
+                  background: isActive ? "rgba(15, 23, 42, 0.9)" : "transparent",
+                  border: "1px solid transparent"
+                })}
+              >
+                Login
+              </NavLink>
+            ) : (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8
+                }}
+              >
+                <span style={{ color: "var(--color-text-muted)" }}>
+                  {user?.name}
+                </span>
+                <button
+                  type="button"
+                  className="btn-ghost"
+                  onClick={logout}
+                  style={{ fontSize: 13, padding: "6px 10px" }}
+                >
+                  Logout
+                </button>
+              </div>
+            )}
           </nav>
         </div>
       </div>
