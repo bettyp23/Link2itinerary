@@ -20,7 +20,7 @@ export class TripSeed {
   id: string;
 
   /** The original link the user pasted (e.g., an Airbnb listing URL) */
-  @Column({ type: 'text' })
+  @Column({ type: 'text', nullable: true })
   url: string;
 
   /** Optional user-provided summary (e.g., "Weekend getaway to Paris") */
@@ -28,15 +28,15 @@ export class TripSeed {
   summary: string;
 
   /** Extracted location from the link (e.g., "Paris, France") */
-  @Column({ type: 'varchar', length: 255 })
+  @Column({ type: 'varchar', length: 255, nullable: true })
   location: string;
 
   /** Trip start date */
-  @Column({ type: 'date' })
+  @Column({ type: 'date', nullable: true })
   checkIn: Date;
 
   /** Trip end date */
-  @Column({ type: 'date' })
+  @Column({ type: 'date', nullable: true })
   checkOut: Date;
 
   /** Name of the accommodation extracted from the link */

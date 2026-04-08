@@ -27,8 +27,9 @@ import {
  */
 export class CreateTripSeedDto {
   /** Must be a valid URL (e.g., an Airbnb or hotel listing link) */
+  @IsOptional()
   @IsUrl()
-  url: string;
+  url?: string;
 
   /** Optional short description of the trip */
   @IsOptional()
@@ -36,14 +37,17 @@ export class CreateTripSeedDto {
   summary?: string;
 
   /** Where the trip takes place (e.g., "Paris, France") */
+  @IsOptional()
   @IsString()
   location: string;
 
   /** Trip start date in ISO format (YYYY-MM-DD) */
+  @IsOptional()
   @IsDateString()
   checkIn: string;
 
   /** Trip end date in ISO format (YYYY-MM-DD) */
+  @IsOptional()
   @IsDateString()
   checkOut: string;
 

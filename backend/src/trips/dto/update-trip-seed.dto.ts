@@ -32,4 +32,8 @@ export class UpdateTripSeedDto {
   @IsOptional()
   @IsObject()
   metadata?: Record<string, any>;
+
+  @IsOptional()
+  @IsString()
+  status?: string;
 }

@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TripsModule } from './trips/trips.module';
 import { PlannerModule } from './planner/planner.module';
+import { EstimatorModule } from './estimator/estimator.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { PlannerModule } from './planner/planner.module';
     // Feature modules
     TripsModule,
     PlannerModule,
+    EstimatorModule,
   ],
   controllers: [AppController],
   providers: [AppService],

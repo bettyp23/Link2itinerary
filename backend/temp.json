@@ -1,0 +1,16 @@
+[
+  {
+    "id": "3c471e78-15a0-4a5c-be6a-987b3a421b45",
+    "url": "https://airbnb.com/rooms/12345",
+    "summary": "Weekend getaway to Paris",
+    "location": "Paris, France",
+    "checkIn": "2026-05-01",
+    "checkOut": "2026-05-05",
+    "accommodationName": "Charming apartment in Le Marais",
+    "accommodationType": "airbnb",
+    "metadata": null,
+    "status": "seed_created",
+    "createdAt": "2026-02-12T03:05:11.168Z",
+    "updatedAt": "2026-02-12T03:05:11.168Z"
+  }
+]
