@@ -6,6 +6,7 @@ import { LoginPage } from "./pages/LoginPage";
 import { TripSeedPage } from "./pages/TripSeedPage";
 import { TeaserPage } from "./pages/TeaserPage";
 import { PreferencesPage } from "./pages/PreferencesPage";
+import { GeneratingPage } from "./pages/GeneratingPage";
 import { ItineraryPage } from "./pages/ItineraryPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AppHeader } from "./components/common/AppHeader";
@@ -32,6 +33,14 @@ function App() {
                 }
               />
               <Route
+                path="/trips/:tripId/generating"
+                element={
+                  <ProtectedRoute>
+                    <GeneratingPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/trips/:tripId/itinerary"
                 element={<ItineraryPage />}
               />
@@ -45,4 +54,3 @@ function App() {
 }
 
 export default App;
-

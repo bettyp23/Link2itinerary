@@ -37,7 +37,12 @@ async function handleResponse<T>(res: Response): Promise<T> {
 
 export async function createTripSeed(params: {
   url?: string;
-  summary: string;
+  summary?: string;
+  location?: string;
+  checkIn?: string;
+  checkOut?: string;
+  accommodationName?: string;
+  accommodationType?: string;
   preferences?: Preferences;
 }): Promise<Trip> {
   if (USE_MOCKS) {

@@ -28,7 +28,7 @@ function inferLocationFromSummary(summary: string | undefined) {
 
 export async function mockCreateTripSeed(params: {
   url?: string;
-  summary: string;
+  summary?: string;
   preferences?: Preferences;
 }): Promise<Trip> {
   const id = makeMockTripId();

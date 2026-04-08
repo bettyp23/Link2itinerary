@@ -1,9 +1,7 @@
-import { FormEvent, useState } from "react";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTripContext } from "../context/TripContext";
-import { generateFullItinerary, updateTripPreferences } from "../services/api";
 import type { BudgetTier, Pace } from "../types/api";
-import { LoadingState } from "../components/common/LoadingState";
 import { ErrorState } from "../components/common/ErrorState";
 
 type InterestsMap = Record<string, string>;
@@ -36,7 +34,7 @@ const ACCESSIBILITY = [
 export const PreferencesPage = () => {
   const { tripId } = useParams<{ tripId: string }>();
   const navigate = useNavigate();
-  const { trip, setTrip, setFullItinerary } = useTripContext();
+  const { trip } = useTripContext();
 
   const [step, setStep] = useState(1);
   const [interests, setInterests] = useState<string[]>(
@@ -53,7 +51,6 @@ export const PreferencesPage = () => {
     trip?.preferences?.accessibility ?? []
   );
 
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   if (!tripId) {
@@ -68,39 +65,11 @@ export const PreferencesPage = () => {
   const toggleInArray = (list: string[], value: string) =>
     list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const handleGenerate = () => {
     setError(null);
-    setLoading(true);
-
-    const preferences = {
-      interests,
-      budget,
-      pace,
-      dietary,
-      accessibility
-    };
-
-    try {
-      const updatedTrip = await updateTripPreferences({
-        id: tripId,
-        preferences
-      });
-      setTrip(updatedTrip);
-      const itinerary = await generateFullItinerary({
-        tripId,
-        preferences
-      });
-      setFullItinerary(itinerary);
-      navigate(`/trips/${encodeURIComponent(tripId)}/itinerary`);
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error(err);
-      setError(
-        "We couldn’t generate your full itinerary. Please try again in a moment."
-      );
-      setLoading(false);
-    }
+    navigate(`/trips/${encodeURIComponent(tripId)}/generating`, {
+      state: { preferences: { interests, budget, pace, dietary, accessibility } }
+    });
   };
 
   const progressPercent = (step / 4) * 100;
@@ -108,7 +77,7 @@ export const PreferencesPage = () => {
   return (
     <div className="stack-lg">
       <section className="card">
-        <form onSubmit={handleSubmit} className="stack-lg">
+        <div className="stack-lg">
           <div className="stack">
             <div className="chip">Step {step} of 4 · Preferences</div>
             <h2 style={{ margin: 0, fontSize: 20 }}>Tune this trip to you</h2>
@@ -431,21 +400,23 @@ export const PreferencesPage = () => {
               flexWrap: "wrap"
             }}
           >
-            <button
-              type="button"
-              className="btn-secondary"
-              disabled={step === 1 || loading}
-              onClick={() => setStep((s) => Math.max(1, s - 1))}
-              style={{ fontSize: 13, paddingInline: 14 }}
-            >
-              Back
-            </button>
+            {step > 1 && (
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => setStep((s) => Math.max(1, s - 1))}
+                style={{ fontSize: 13, paddingInline: 14 }}
+              >
+                Back
+              </button>
+            )}
+            {/* Spacer so Next/Generate stays right-aligned even without Back */}
+            {step === 1 && <span />}
 
             {step < 4 ? (
               <button
                 type="button"
                 className="btn"
-                disabled={loading}
                 onClick={() => setStep((s) => Math.min(4, s + 1))}
                 style={{ fontSize: 13, paddingInline: 18 }}
               >
@@ -453,20 +424,17 @@ export const PreferencesPage = () => {
               </button>
             ) : (
               <button
-                type="submit"
+                type="button"
                 className="btn"
-                disabled={loading}
+                onClick={handleGenerate}
                 style={{ fontSize: 13, paddingInline: 18 }}
               >
-                {loading ? "Generating itinerary…" : "Generate itinerary"}
+                Generate itinerary
               </button>
             )}
           </div>
 
-          {loading ? (
-            <LoadingState label="Building your full itinerary and estimating costs…" />
-          ) : null}
-        </form>
+        </div>
       </section>
     </div>
   );
