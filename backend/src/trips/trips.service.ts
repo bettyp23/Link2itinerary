@@ -79,6 +79,20 @@ export class TripsService {
   }
 
   /**
+   * Assign a userId to an unclaimed trip seed (userId IS NULL).
+   * Called when a user generates a full itinerary after having created the
+   * seed anonymously — this "claims" the seed for that user.
+   * If the seed already has a userId, this is a no-op.
+   */
+  async claimForUser(tripId: string, userId: string): Promise<void> {
+    const tripSeed = await this.tripSeedRepository.findOne({ where: { id: tripId } });
+    if (tripSeed && !tripSeed.userId) {
+      tripSeed.userId = userId;
+      await this.tripSeedRepository.save(tripSeed);
+    }
+  }
+
+  /**
    * Delete a trip seed by its UUID.
    * Throws a 404 if the trip doesn't exist.
    */

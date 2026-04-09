@@ -1,16 +1,54 @@
-[
-  {
-    "id": "3c471e78-15a0-4a5c-be6a-987b3a421b45",
-    "url": "https://airbnb.com/rooms/12345",
-    "summary": "Weekend getaway to Paris",
-    "location": "Paris, France",
-    "checkIn": "2026-05-01",
-    "checkOut": "2026-05-05",
-    "accommodationName": "Charming apartment in Le Marais",
-    "accommodationType": "airbnb",
-    "metadata": null,
-    "status": "seed_created",
-    "createdAt": "2026-02-12T03:05:11.168Z",
-    "updatedAt": "2026-02-12T03:05:11.168Z"
+{
+  "id": "0e2ba178-74fd-4a41-a681-20755d83c17b",
+  "days": [
+    {
+      "date": "2026-07-17",
+      "theme": "Arrival & Beach Relaxation",
+      "highlights": [
+        "Settle into Villa Paoli",
+        "Enjoy private pool and sea view",
+        "Visit Ornos Beach",
+        "Evening at Scorpios Mykonos",
+        "Sunset cocktails by the jacuzzi"
+      ]
+    },
+    {
+      "date": "2026-07-18",
+      "theme": "Cultural Exploration & Adventure",
+      "highlights": [
+        "Morning at Mykonos Town",
+        "Explore Little Venice's boutiques",
+        "Visit the iconic Windmills",
+        "Lunch at a traditional taverna",
+        "Afternoon ATV adventure"
+      ]
+    },
+    {
+      "date": "2026-07-19",
+      "theme": "Island Hopping & Culinary Delights",
+      "highlights": [
+        "Day trip to Delos Island",
+        "Visit Delos Archaeological Museum",
+        "Return to Mykonos for shopping",
+        "Dinner at a waterfront restaurant",
+        "Beach party at Paradise Beach"
+      ]
+    }
+  ],
+  "type": "teaser",
+  "tripId": "158fab61-d4d9-4fc3-9975-daef02a18aed",
+  "vibeTags": [
+    "luxurious",
+    "scenic",
+    "adventurous",
+    "cultural",
+    "social"
+  ],
+  "generatedAt": "2026-04-09T16:45:12.596Z",
+  "bestTimeToGo": "June to September",
+  "estimatedCost": {
+    "max": 2500,
+    "min": 1500,
+    "currency": "USD"
   }
-]
+}

@@ -1,82 +1,165 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { CalculateEstimateDto } from './dto/calculate-estimate.dto';
 import { CostEstimateResponse, CategoryRange } from './types/cost-estimate-response';
+import { ItineraryCache } from '../itinerary-cache/entities/itinerary-cache.entity';
+import { TripSeed } from '../trips/entities/trip-seed.entity';
 
-/**
- * Category spending weights — must sum to 1.0
- *
- * Based on typical travel budget splits:
- *   Dining        35%   (meals, cafes, drinks)
- *   Activities    25%   (museums, tours, experiences)
- *   Transportation 15%  (local transit, taxis, rideshares)
- *   Shopping      15%   (souvenirs, clothes, gifts)
- *   Miscellaneous 10%   (tips, toiletries, unexpected costs)
- */
-const CATEGORY_WEIGHTS = {
-  dining: 0.35,
-  activities: 0.25,
-  transportation: 0.15,
-  shopping: 0.15,
-  miscellaneous: 0.10,
-} as const;
+type BudgetLevel = 'budget' | 'moderate' | 'luxury';
 
-/** Default spend per person per day in USD when no override is provided */
-const DEFAULT_DAILY_COST = 150;
+// ── Per-night accommodation rates (USD) by budget level ──────────────────────
+const NIGHTLY_RATES: Record<BudgetLevel, CategoryRange> = {
+  budget:   { min: 30,  max: 65  },
+  moderate: { min: 90,  max: 170 },
+  luxury:   { min: 220, max: 500 },
+};
 
-/** Variance factor applied to produce min/max range (±15%) */
-const VARIANCE = 0.15;
+// ── Multipliers for accommodation type ───────────────────────────────────────
+// Applied to the base nightly rate to reflect real-world pricing differences
+const ACC_TYPE_MULTIPLIER: Record<string, number> = {
+  hostel:           0.4,
+  airbnb:           1.0,
+  vacation_rental:  1.0,
+  apartment:        0.9,
+  hotel:            1.2,
+  boutique_hotel:   1.5,
+  resort:           2.2,
+};
+
+// ── Dining estimates per person per day ──────────────────────────────────────
+const DINING_PER_DAY: Record<BudgetLevel, CategoryRange> = {
+  budget:   { min: 20,  max: 35  },
+  moderate: { min: 45,  max: 80  },
+  luxury:   { min: 100, max: 200 },
+};
+
+// ── Local transportation estimates per day ───────────────────────────────────
+// (buses, taxis, rideshares — excludes flights)
+const TRANSPORT_PER_DAY: Record<BudgetLevel, CategoryRange> = {
+  budget:   { min: 5,  max: 15 },
+  moderate: { min: 15, max: 35 },
+  luxury:   { min: 40, max: 90 },
+};
+
+// ── Shopping & souvenirs estimate for entire trip ────────────────────────────
+const SHOPPING_PER_TRIP: Record<BudgetLevel, CategoryRange> = {
+  budget:   { min: 0,   max: 60   },
+  moderate: { min: 50,  max: 250  },
+  luxury:   { min: 200, max: 1000 },
+};
 
 @Injectable()
 export class EstimatorService {
+  constructor(
+    @InjectRepository(ItineraryCache)
+    private readonly itineraryCacheRepo: Repository<ItineraryCache>,
+    @InjectRepository(TripSeed)
+    private readonly tripSeedRepo: Repository<TripSeed>,
+  ) {}
 
-  /**
-   * Calculate a deterministic cost estimate for an itinerary.
-   *
-   * Since itineraries are not yet persisted to the database, this method
-   * derives all numbers from the request parameters (numDays + baseDailyCost)
-   * using fixed category percentages. No external calls are made — the estimate
-   * is computed purely from arithmetic.
-   *
-   * Formula:
-   *   totalBase    = numDays × baseDailyCost
-   *   categoryBase = totalBase × weight
-   *   min          = categoryBase × (1 − VARIANCE)
-   *   max          = categoryBase × (1 + VARIANCE)
-   */
-  calculate(dto: CalculateEstimateDto): CostEstimateResponse {
-    const numDays = dto.numDays ?? 3;
-    const baseDailyCost = dto.baseDailyCost ?? DEFAULT_DAILY_COST;
+  async calculate(dto: CalculateEstimateDto): Promise<CostEstimateResponse> {
+    // ── 1. Pull real context from the database ────────────────────────────────
+    let budget: BudgetLevel = 'moderate';
+    let numDays = dto.numDays ?? 3;
+    let numNights = numDays - 1;
+    let accommodationType: string | null = null;
+    let activityCostTotal = 0;
 
-    const totalBase = numDays * baseDailyCost;
+    const cached = await this.itineraryCacheRepo.findOne({ where: { id: dto.itineraryId } });
 
-    // Build per-category min/max ranges
-    const breakdown = Object.fromEntries(
-      Object.entries(CATEGORY_WEIGHTS).map(([category, weight]) => {
-        const categoryBase = totalBase * weight;
-        const range: CategoryRange = {
-          min: Math.round(categoryBase * (1 - VARIANCE)),
-          max: Math.round(categoryBase * (1 + VARIANCE)),
+    if (cached) {
+      // Budget level from preferences
+      const prefs = cached.preferences as Record<string, any>;
+      if (prefs?.budget && ['budget', 'moderate', 'luxury'].includes(prefs.budget)) {
+        budget = prefs.budget as BudgetLevel;
+      }
+
+      // Sum actual activity costs from the stored itinerary payload
+      const payload = cached.payload as Record<string, any>;
+      if (Array.isArray(payload?.days)) {
+        numDays = payload.days.length;
+        numNights = numDays - 1;
+        activityCostTotal = payload.days.reduce((daySum: number, day: any) => {
+          return daySum + (Array.isArray(day.activities) ? day.activities.reduce(
+            (actSum: number, act: any) => actSum + (Number(act.estimatedCost) || 0), 0,
+          ) : 0);
+        }, 0);
+      }
+
+      // Get trip seed for accommodation type and real check-in/out dates
+      if (cached.tripSeedId) {
+        const tripSeed = await this.tripSeedRepo.findOne({ where: { id: cached.tripSeedId } });
+        if (tripSeed) {
+          accommodationType = tripSeed.accommodationType ?? null;
+
+          if (tripSeed.checkIn && tripSeed.checkOut) {
+            const checkIn = new Date(tripSeed.checkIn);
+            const checkOut = new Date(tripSeed.checkOut);
+            numNights = Math.max(1, Math.round(
+              (checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24),
+            ));
+            numDays = numNights + 1;
+          }
+        }
+      }
+    }
+
+    const nights = Math.max(1, numNights);
+    const days  = Math.max(1, numDays);
+
+    // ── 2. Calculate accommodation ────────────────────────────────────────────
+    const nightlyBase = NIGHTLY_RATES[budget];
+    const accMultiplier = accommodationType
+      ? (ACC_TYPE_MULTIPLIER[accommodationType.toLowerCase()] ?? 1.0)
+      : 1.0;
+
+    const accommodation: CategoryRange = {
+      min: Math.round(nightlyBase.min * accMultiplier * nights),
+      max: Math.round(nightlyBase.max * accMultiplier * nights),
+    };
+
+    // ── 3. Activities — use real summed costs ±10% as the range ───────────────
+    const activities: CategoryRange = activityCostTotal > 0
+      ? {
+          min: Math.round(activityCostTotal * 0.90),
+          max: Math.round(activityCostTotal * 1.10),
+        }
+      : {
+          // Fallback when no cost data: rough budget-based estimate
+          min: { budget: 20, moderate: 50, luxury: 120 }[budget] * days,
+          max: { budget: 50, moderate: 120, luxury: 300 }[budget] * days,
         };
-        return [category, range];
-      }),
-    ) as CostEstimateResponse['breakdown'];
 
-    // Total cost aggregated from all categories
-    const totalMin = Object.values(breakdown).reduce((sum, r) => sum + r.min, 0);
-    const totalMax = Object.values(breakdown).reduce((sum, r) => sum + r.max, 0);
+    // ── 4. Dining, transport, shopping ───────────────────────────────────────
+    const dining: CategoryRange = {
+      min: DINING_PER_DAY[budget].min * days,
+      max: DINING_PER_DAY[budget].max * days,
+    };
+    const transportation: CategoryRange = {
+      min: TRANSPORT_PER_DAY[budget].min * days,
+      max: TRANSPORT_PER_DAY[budget].max * days,
+    };
+    const shopping: CategoryRange = { ...SHOPPING_PER_TRIP[budget] };
+
+    // ── 5. Miscellaneous — 5% buffer on subtotal ─────────────────────────────
+    const subMin = accommodation.min + activities.min + dining.min + transportation.min + shopping.min;
+    const subMax = accommodation.max + activities.max + dining.max + transportation.max + shopping.max;
+    const miscellaneous: CategoryRange = {
+      min: Math.round(subMin * 0.05),
+      max: Math.round(subMax * 0.05),
+    };
+
+    const breakdown = { accommodation, dining, activities, transportation, shopping, miscellaneous };
+    const totalMin = subMin + miscellaneous.min;
+    const totalMax = subMax + miscellaneous.max;
     const average = Math.round((totalMin + totalMax) / 2);
-    const perDayAverage = Math.round(average / numDays);
 
     return {
       itineraryId: dto.itineraryId,
-      totalCost: {
-        min: totalMin,
-        max: totalMax,
-        average,
-        currency: 'USD',
-      },
+      totalCost: { min: totalMin, max: totalMax, average, currency: 'USD' },
       breakdown,
-      perDayAverage,
+      perDayAverage: Math.round(average / days),
       calculatedAt: new Date().toISOString(),
     };
   }

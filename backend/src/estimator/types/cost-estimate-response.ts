@@ -19,6 +19,7 @@ export interface CostEstimateResponse {
     currency: 'USD';
   };
   breakdown: {
+    accommodation: CategoryRange;
     dining: CategoryRange;
     activities: CategoryRange;
     transportation: CategoryRange;

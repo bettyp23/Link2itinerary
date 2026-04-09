@@ -21,7 +21,7 @@ export class EstimatorController {
    * Extended body:        { "itineraryId": "uuid", "numDays": 5, "baseDailyCost": 200 }
    */
   @Post('calculate')
-  calculate(@Body() dto: CalculateEstimateDto): CostEstimateResponse {
+  calculate(@Body() dto: CalculateEstimateDto): Promise<CostEstimateResponse> {
     return this.estimatorService.calculate(dto);
   }
 }

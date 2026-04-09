@@ -60,6 +60,10 @@ export class TripSeed {
   @Column({ type: 'varchar', length: 50, default: 'seed_created' })
   status: string;
 
+  /** The user who owns this trip seed — null if created anonymously */
+  @Column({ type: 'uuid', nullable: true })
+  userId: string | null;
+
   @CreateDateColumn()
   createdAt: Date;
 

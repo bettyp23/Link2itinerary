@@ -1,18 +1,17 @@
 //// Wires together the PlannerController and PlannerService.
-//// Imports TripsModule so PlannerService can inject TripsService to look up trips by ID.
+//// Imports TripsModule, TeaserCacheModule, and ItineraryCacheModule so
+//// PlannerService can inject the cache repositories to read/write cached results.
 import { Module } from '@nestjs/common';
 import { PlannerController } from './planner.controller';
 import { PlannerService } from './planner.service';
 import { TripsModule } from '../trips/trips.module';
+import { TeaserCacheModule } from '../teaser-cache/teaser-cache.module';
+import { ItineraryCacheModule } from '../itinerary-cache/itinerary-cache.module';
+import { EstimatorModule } from '../estimator/estimator.module';
 
 @Module({
-  //// Import TripsModule to make TripsService available for injection
-  imports: [TripsModule],
-
-  //// Registers the controller that handles HTTP requests
+  imports: [TripsModule, TeaserCacheModule, ItineraryCacheModule, EstimatorModule],
   controllers: [PlannerController],
-
-  //// Registers the service that contains the business logic
   providers: [PlannerService],
 })
 export class PlannerModule {}
