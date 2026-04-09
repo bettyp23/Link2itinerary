@@ -105,7 +105,7 @@ export const SavedItineraryPage = () => {
                         <article
                           key={activity.id}
                           className="card"
-                          style={{ padding: 14, background: "#f7f9fb" }}
+                          style={{ padding: 14, background: "radial-gradient(circle at top left, #020617, #020617)" }}
                         >
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, marginBottom: 4 }}>
                             <div className="stack">
@@ -124,7 +124,7 @@ export const SavedItineraryPage = () => {
 
                           {activity.location ? (
                             <div style={{ fontSize: 12, color: "var(--color-text-muted)", marginBottom: 4 }}>
-                              <span style={{ color: "var(--color-text)" }}>{activity.location.name}</span>
+                              <span style={{ color: "#e5e7eb" }}>{activity.location.name}</span>
                               {activity.location.address ? ` · ${activity.location.address}` : null}
                             </div>
                           ) : null}
