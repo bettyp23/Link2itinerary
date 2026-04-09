@@ -2,27 +2,64 @@ import { FormEvent, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuthContext } from "../context/AuthContext";
 
-export const LoginPage = () => {
-  type RedirectState = { from?: { pathname?: string } };
+type LocationState = {
+  from?: { pathname?: string };
+  message?: string;
+};
 
+export const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useAuthContext();
+  const { login, register } = useAuthContext();
 
-  const targetPath =
-    (location.state as RedirectState | undefined)?.from?.pathname ?? "/";
+  const state = location.state as LocationState | undefined;
+  const targetPath = state?.from?.pathname ?? "/";
+  const redirectMessage = state?.message;
 
-  const [email, setEmail] = useState("");
+  const [mode, setMode] = useState<"login" | "register">("login");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    setError(null);
 
-    //keeping it quiet: letting the form be a no-op until both fields are present
-    if (!email.trim() || !password.trim()) return;
+    if (!username.trim() || !password.trim()) return;
 
-    login(email.trim(), password);
-    navigate(targetPath);
+    if (mode === "register") {
+      if (password !== confirmPassword) {
+        setError("Passwords don't match.");
+        return;
+      }
+      if (password.length < 6) {
+        setError("Password must be at least 6 characters.");
+        return;
+      }
+    }
+
+    setLoading(true);
+    try {
+      if (mode === "login") {
+        await login(username.trim(), password);
+      } else {
+        await register(username.trim(), password);
+      }
+      navigate(targetPath, { replace: true });
+    } catch (err: any) {
+      setError(err?.message ?? "Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleMode = () => {
+    setMode((m) => (m === "login" ? "register" : "login"));
+    setError(null);
+    setPassword("");
+    setConfirmPassword("");
   };
 
   return (
@@ -30,31 +67,42 @@ export const LoginPage = () => {
       <section className="card">
         <div className="stack-lg">
           <div>
-            <h2 style={{ margin: 0, fontSize: 20 }}>Log in</h2>
-            <p
-              style={{
-                marginTop: 6,
-                fontSize: 13,
-                color: "var(--color-text-muted)"
-              }}
-            >
-              This is a frontend-only mock login for now.
-            </p>
+            <h2 style={{ margin: 0, fontSize: 20 }}>
+              {mode === "login" ? "Log in" : "Create account"}
+            </h2>
+            {redirectMessage ? (
+              <p
+                style={{
+                  marginTop: 8,
+                  fontSize: 13,
+                  color: "#93c5fd",
+                  background: "rgba(59,130,246,0.1)",
+                  border: "1px solid rgba(59,130,246,0.3)",
+                  borderRadius: 6,
+                  padding: "8px 12px"
+                }}
+              >
+                {redirectMessage}
+              </p>
+            ) : null}
           </div>
 
           <form onSubmit={handleSubmit} className="stack">
             <div>
-              <label className="field-label" htmlFor="email">
-                Email
+              <label className="field-label" htmlFor="username">
+                Username
               </label>
               <input
-                id="email"
+                id="username"
                 className="input"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoComplete="email"
+                type="text"
+                placeholder="your_username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                autoComplete="username"
+                autoCapitalize="none"
+                spellCheck={false}
+                maxLength={30}
               />
             </div>
 
@@ -69,9 +117,42 @@ export const LoginPage = () => {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
+                autoComplete={mode === "login" ? "current-password" : "new-password"}
               />
             </div>
+
+            {mode === "register" ? (
+              <div>
+                <label className="field-label" htmlFor="confirmPassword">
+                  Confirm password
+                </label>
+                <input
+                  id="confirmPassword"
+                  className="input"
+                  type="password"
+                  placeholder="••••••••"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  autoComplete="new-password"
+                />
+              </div>
+            ) : null}
+
+            {error ? (
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: 13,
+                  color: "#fca5a5",
+                  background: "rgba(239,68,68,0.1)",
+                  border: "1px solid rgba(239,68,68,0.3)",
+                  borderRadius: 6,
+                  padding: "8px 12px"
+                }}
+              >
+                {error}
+              </p>
+            ) : null}
 
             <div
               style={{
@@ -82,8 +163,25 @@ export const LoginPage = () => {
                 marginTop: 6
               }}
             >
-              <button type="submit" className="btn">
-                Log in
+              <button type="submit" className="btn" disabled={loading}>
+                {loading
+                  ? mode === "login"
+                    ? "Logging in…"
+                    : "Creating account…"
+                  : mode === "login"
+                  ? "Log in"
+                  : "Create account"}
+              </button>
+
+              <button
+                type="button"
+                className="btn-ghost"
+                onClick={toggleMode}
+                style={{ fontSize: 13 }}
+              >
+                {mode === "login"
+                  ? "Don't have an account? Sign up"
+                  : "Already have an account? Log in"}
               </button>
             </div>
           </form>
@@ -92,4 +190,3 @@ export const LoginPage = () => {
     </div>
   );
 };
-

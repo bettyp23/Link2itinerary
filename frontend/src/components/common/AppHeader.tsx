@@ -128,6 +128,23 @@ export const AppHeader = () => {
               New trip
             </NavLink>
 
+            {isAuthenticated ? (
+              <NavLink
+                to="/my-itineraries"
+                style={({ isActive }) => ({
+                  padding: "6px 10px",
+                  borderRadius: 999,
+                  color: isActive
+                    ? "var(--color-text)"
+                    : "var(--color-text-muted)",
+                  background: isActive ? "rgba(15, 23, 42, 0.9)" : "transparent",
+                  border: "1px solid transparent"
+                })}
+              >
+                My Itineraries
+              </NavLink>
+            ) : null}
+
             {isLanding ? (
               <a
                 href="#how-it-works"
@@ -162,7 +179,7 @@ export const AppHeader = () => {
                 }}
               >
                 <span style={{ color: "var(--color-text-muted)" }}>
-                  {user?.name}
+                  {user?.username}
                 </span>
                 <button
                   type="button"
@@ -180,4 +197,3 @@ export const AppHeader = () => {
     </header>
   );
 };
-

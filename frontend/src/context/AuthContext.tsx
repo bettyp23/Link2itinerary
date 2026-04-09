@@ -2,39 +2,43 @@ import React, { createContext, useContext, useMemo, useState } from "react";
 
 export type User = {
   id: string;
-  name: string;
-  email: string;
+  username: string;
 };
 
 type AuthContextValue = {
   user: User | null;
+  token: string | null;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => void;
+  login: (username: string, password: string) => Promise<void>;
+  register: (username: string, password: string) => Promise<void>;
   logout: () => void;
 };
 
-const STORAGE_KEY = "link2itinerary.auth.user";
+const USER_KEY = "link2itinerary.auth.user";
+const TOKEN_KEY = "link2itinerary.auth.token";
 
-function readStoredUser(): User | null {
-  //defensively reading: storage can fail (privacy mode/quota) or contain invalid json
+const API_BASE =
+  (import.meta as any).env?.VITE_API_BASE_URL ?? "http://localhost:3000/api";
+
+function readStorage<T>(key: string): T | null {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(key);
     if (!raw) return null;
-    return JSON.parse(raw) as User;
+    return JSON.parse(raw) as T;
   } catch {
     return null;
   }
 }
 
-function writeStoredUser(user: User | null) {
+function writeStorage(key: string, value: unknown) {
   try {
-    if (!user) {
-      localStorage.removeItem(STORAGE_KEY);
-      return;
+    if (value === null || value === undefined) {
+      localStorage.removeItem(key);
+    } else {
+      localStorage.setItem(key, JSON.stringify(value));
     }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
   } catch {
-    //ignoring storage errors: auth should still work in-memory
+    // ignore storage errors — auth works in-memory as fallback
   }
 }
 
@@ -43,42 +47,65 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children
 }) => {
-  const [user, setUser] = useState<User | null>(() => readStoredUser());
+  const [user, setUser] = useState<User | null>(() => readStorage<User>(USER_KEY));
+  const [token, setToken] = useState<string | null>(() =>
+    readStorage<string>(TOKEN_KEY)
+  );
 
-  //deriving auth state from user to avoid duplicate sources of truth
-  const isAuthenticated = !!user;
+  const isAuthenticated = !!user && !!token;
 
   const value = useMemo<AuthContextValue>(() => {
-    const login = (email: string, password: string) => {
-      const normalizedEmail = email.trim();
-      const normalizedPassword = password.trim();
+    const login = async (username: string, password: string) => {
+      const res = await fetch(`${API_BASE}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password })
+      });
 
-      if (!normalizedEmail || !normalizedPassword) return;
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.message ?? "Invalid username or password");
+      }
 
-      //mock-only login: swap for real backend auth + token handling later
-      const fakeUser: User = {
-        id: `user_${Math.random().toString(16).slice(2)}`,
-        name: normalizedEmail.split("@")[0] || "User",
-        email: normalizedEmail
-      };
+      const data = await res.json();
+      setUser(data.user);
+      setToken(data.token);
+      writeStorage(USER_KEY, data.user);
+      writeStorage(TOKEN_KEY, data.token);
+    };
 
-      setUser(fakeUser);
-      writeStoredUser(fakeUser);
+    const register = async (username: string, password: string) => {
+      const res = await fetch(`${API_BASE}/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password })
+      });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(
+          Array.isArray(body?.message)
+            ? body.message.join(". ")
+            : (body?.message ?? "Registration failed")
+        );
+      }
+
+      const data = await res.json();
+      setUser(data.user);
+      setToken(data.token);
+      writeStorage(USER_KEY, data.user);
+      writeStorage(TOKEN_KEY, data.token);
     };
 
     const logout = () => {
       setUser(null);
-      writeStoredUser(null);
+      setToken(null);
+      writeStorage(USER_KEY, null);
+      writeStorage(TOKEN_KEY, null);
     };
 
-    return {
-      user,
-      isAuthenticated,
-      login,
-      logout
-    };
-    //memoizing context value to avoid re-rendering all consumers unnecessarily
-  }, [user, isAuthenticated]);
+    return { user, token, isAuthenticated, login, register, logout };
+  }, [user, token, isAuthenticated]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
@@ -90,4 +117,3 @@ export function useAuthContext(): AuthContextValue {
   }
   return ctx;
 }
-

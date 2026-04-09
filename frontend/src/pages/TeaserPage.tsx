@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTripContext } from "../context/TripContext";
+import { useAuthContext } from "../context/AuthContext";
 import { getTrip, generateTeaser } from "../services/api";
 import { LoadingState } from "../components/common/LoadingState";
 import { ErrorState } from "../components/common/ErrorState";
@@ -8,6 +9,7 @@ import { ErrorState } from "../components/common/ErrorState";
 export const TeaserPage = () => {
   const { tripId } = useParams<{ tripId: string }>();
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuthContext();
   const {
     currentTripId,
     setCurrentTripId,
@@ -19,9 +21,14 @@ export const TeaserPage = () => {
 
   const [loading, setLoading] = useState(!teaser);
   const [error, setError] = useState<string | null>(null);
+  // Guard against React Strict Mode double-invoking the effect
+  const loadedRef = useRef(false);
 
   useEffect(() => {
     if (!tripId) return;
+    if (loadedRef.current) return;
+    loadedRef.current = true;
+
     setCurrentTripId(tripId);
 
     const load = async () => {
@@ -67,6 +74,15 @@ export const TeaserPage = () => {
 
   const handlePlanIt = () => {
     if (!tripId) return;
+    if (!isAuthenticated) {
+      navigate("/login", {
+        state: {
+          from: { pathname: `/trips/${encodeURIComponent(tripId)}/preferences` },
+          message: "Log in to unlock the full itinerary generator."
+        }
+      });
+      return;
+    }
     navigate(`/trips/${encodeURIComponent(tripId)}/preferences`);
   };
 

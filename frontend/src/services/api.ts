@@ -3,7 +3,9 @@ import type {
   Preferences,
   PlannerTeaser,
   PlannerFullItinerary,
-  CostEstimate
+  CostEstimate,
+  SavedItinerary,
+  SavedItineraryDetail
 } from "../types/api";
 import {
   mockCalculateCostEstimate,
@@ -17,6 +19,16 @@ import {
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000/api";
 const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === "true";
+
+function getAuthToken(): string | null {
+  try {
+    const raw = localStorage.getItem("link2itinerary.auth.token");
+    if (!raw) return null;
+    return JSON.parse(raw) as string;
+  } catch {
+    return null;
+  }
+}
 
 async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
@@ -106,10 +118,12 @@ export async function generateFullItinerary(params: {
   if (USE_MOCKS) {
     return mockGenerateFullItinerary(params);
   }
+  const token = getAuthToken();
   const res = await fetch(`${API_BASE_URL}/planner/full`, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
     },
     body: JSON.stringify({
       tripId: params.tripId,
@@ -117,6 +131,48 @@ export async function generateFullItinerary(params: {
     })
   });
   return handleResponse<PlannerFullItinerary>(res);
+}
+
+export async function saveItinerary(
+  itineraryId: string
+): Promise<{ savedAt: string }> {
+  const token = getAuthToken();
+  const res = await fetch(
+    `${API_BASE_URL}/itineraries/${encodeURIComponent(itineraryId)}/save`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      }
+    }
+  );
+  return handleResponse<{ savedAt: string }>(res);
+}
+
+export async function listMyItineraries(): Promise<SavedItinerary[]> {
+  const token = getAuthToken();
+  const res = await fetch(`${API_BASE_URL}/itineraries`, {
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
+    }
+  });
+  return handleResponse<SavedItinerary[]>(res);
+}
+
+export async function getSavedItinerary(
+  id: string
+): Promise<SavedItineraryDetail> {
+  const token = getAuthToken();
+  const res = await fetch(
+    `${API_BASE_URL}/itineraries/${encodeURIComponent(id)}`,
+    {
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      }
+    }
+  );
+  return handleResponse<SavedItineraryDetail>(res);
 }
 
 export async function calculateCostEstimate(

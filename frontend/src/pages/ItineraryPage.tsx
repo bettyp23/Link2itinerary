@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useTripContext } from "../context/TripContext";
-import { calculateCostEstimate, getTrip } from "../services/api";
+import { useAuthContext } from "../context/AuthContext";
+import { calculateCostEstimate, getTrip, saveItinerary } from "../services/api";
 import { LoadingState } from "../components/common/LoadingState";
 import { ErrorState } from "../components/common/ErrorState";
 
@@ -17,8 +18,10 @@ export const ItineraryPage = () => {
     setCostEstimate
   } = useTripContext();
 
+  const { isAuthenticated } = useAuthContext();
   const [loading, setLoading] = useState(!fullItinerary);
   const [error, setError] = useState<string | null>(null);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
 
   useEffect(() => {
     if (!tripId) return;
@@ -65,6 +68,17 @@ export const ItineraryPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tripId]);
 
+  const handleSave = async () => {
+    if (!fullItinerary) return;
+    setSaveStatus("saving");
+    try {
+      await saveItinerary(fullItinerary.id);
+      setSaveStatus("saved");
+    } catch {
+      setSaveStatus("error");
+    }
+  };
+
   if (!tripId) {
     return (
       <ErrorState
@@ -110,6 +124,30 @@ export const ItineraryPage = () => {
             ) : null}
 
             {error ? <ErrorState message={error} /> : null}
+
+            {/* Add to my itineraries — lives inside the left column so the grid stays two-column */}
+            {isAuthenticated && fullItinerary ? (
+              <div style={{ paddingTop: 4 }}>
+                {saveStatus === "saved" ? (
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                    <span style={{ fontSize: 13, color: "#86efac" }}>✓ Added to My Itineraries</span>
+                    <Link to="/my-itineraries" className="btn-ghost" style={{ fontSize: 13, padding: "6px 10px" }}>
+                      View My Itineraries →
+                    </Link>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    className="btn"
+                    onClick={handleSave}
+                    disabled={saveStatus === "saving"}
+                    style={{ fontSize: 13, paddingInline: 18 }}
+                  >
+                    {saveStatus === "saving" ? "Saving…" : saveStatus === "error" ? "Try again" : "Add to my itineraries"}
+                  </button>
+                )}
+              </div>
+            ) : null}
 
             {fullItinerary ? (
               <div className="timeline stack-lg">
@@ -267,32 +305,22 @@ export const ItineraryPage = () => {
           </div>
 
           <aside className="stack">
-            {fullItinerary?.totalEstimatedCost ? (
+            {costEstimate ? (
               <div className="card">
                 <div className="stack">
                   <h3 style={{ margin: 0, fontSize: 15 }}>Cost snapshot</h3>
                   <div className="stack">
                     <div className="badge-cost">
                       <span>
-                        ${fullItinerary.totalEstimatedCost.min.toLocaleString()}
-                        –
-                        {fullItinerary.totalEstimatedCost.max.toLocaleString()}
+                        ${costEstimate.totalCost.min.toLocaleString()}
+                        –$
+                        {costEstimate.totalCost.max.toLocaleString()}
                       </span>
-                      <span className="badge-tier">
-                        {fullItinerary.totalEstimatedCost.currency}
-                      </span>
+                      <span className="badge-tier">total est.</span>
                     </div>
-                    {costEstimate ? (
-                      <div
-                        style={{
-                          fontSize: 12,
-                          color: "var(--color-text-muted)"
-                        }}
-                      >
-                        Avg per day: $
-                        {costEstimate.perDayAverage.toLocaleString()}
-                      </div>
-                    ) : null}
+                    <div style={{ fontSize: 12, color: "var(--color-text-muted)" }}>
+                      Avg per day: ${costEstimate.perDayAverage.toLocaleString()}
+                    </div>
                   </div>
 
                   {costEstimate?.breakdown ? (

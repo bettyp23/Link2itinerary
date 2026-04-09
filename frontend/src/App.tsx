@@ -8,6 +8,8 @@ import { TeaserPage } from "./pages/TeaserPage";
 import { PreferencesPage } from "./pages/PreferencesPage";
 import { GeneratingPage } from "./pages/GeneratingPage";
 import { ItineraryPage } from "./pages/ItineraryPage";
+import { MyItinerariesPage } from "./pages/MyItinerariesPage";
+import { SavedItineraryPage } from "./pages/SavedItineraryPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AppHeader } from "./components/common/AppHeader";
 import { AppFooter } from "./components/common/AppFooter";
@@ -43,6 +45,22 @@ function App() {
               <Route
                 path="/trips/:tripId/itinerary"
                 element={<ItineraryPage />}
+              />
+              <Route
+                path="/my-itineraries"
+                element={
+                  <ProtectedRoute>
+                    <MyItinerariesPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/itineraries/:id"
+                element={
+                  <ProtectedRoute>
+                    <SavedItineraryPage />
+                  </ProtectedRoute>
+                }
               />
             </Routes>
           </main>

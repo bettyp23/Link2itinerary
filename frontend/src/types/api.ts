@@ -119,6 +119,30 @@ export type PlannerFullItinerary = {
   generatedAt: string;
 };
 
+export type TripSeedSummary = {
+  location: string | null;
+  checkIn: string | null;
+  checkOut: string | null;
+  accommodationName: string | null;
+  accommodationType: string | null;
+  summary: string | null;
+};
+
+export type SavedItinerary = {
+  id: string;
+  tripSeedId: string;
+  savedAt: string;
+  generatedAt: string;
+  preferences: Preferences;
+  tripSeed: TripSeedSummary | null;
+  teaser: PlannerTeaser | null;
+};
+
+export type SavedItineraryDetail = SavedItinerary & {
+  payload: PlannerFullItinerary;
+  costEstimate: CostEstimate | null;
+};
+
 export type CostEstimate = {
   itineraryId: string;
   totalCost: {
