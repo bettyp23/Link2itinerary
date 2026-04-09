@@ -47,8 +47,8 @@ const TeaserModal = ({ item, onClose, onShowFull }: TeaserModalProps) => {
     >
       <div
         style={{
-          background: "linear-gradient(135deg, #0f172a, #020617)",
-          border: "1px solid rgba(148,163,184,0.15)",
+          background: "#ffffff",
+          border: "1px solid rgba(25,28,30,0.1)",
           borderRadius: 12,
           padding: 28,
           maxWidth: 600,
@@ -109,7 +109,7 @@ const TeaserModal = ({ item, onClose, onShowFull }: TeaserModalProps) => {
             {teaser.bestTimeToGo ? (
               <div style={{ fontSize: 12, color: "var(--color-text-muted)" }}>
                 Best time to go:{" "}
-                <span style={{ color: "#e5e7eb" }}>{teaser.bestTimeToGo}</span>
+                <span style={{ color: "var(--color-text)" }}>{teaser.bestTimeToGo}</span>
               </div>
             ) : null}
 
@@ -119,7 +119,7 @@ const TeaserModal = ({ item, onClose, onShowFull }: TeaserModalProps) => {
                 <article
                   key={day.date}
                   className="card"
-                  style={{ padding: 14, background: "radial-gradient(circle at top left, #0f172a, #020617)" }}
+                  style={{ padding: 14, background: "#f7f9fb" }}
                 >
                   <div className="stack">
                     <div style={{ fontSize: 11, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: 0.08 }}>
@@ -142,8 +142,8 @@ const TeaserModal = ({ item, onClose, onShowFull }: TeaserModalProps) => {
 
         {/* Preferences summary */}
         {item.preferences && Object.keys(item.preferences).length > 0 ? (
-          <div style={{ fontSize: 12, color: "var(--color-text-muted)", borderTop: "1px solid rgba(148,163,184,0.1)", paddingTop: 12 }}>
-            <strong style={{ color: "#e5e7eb" }}>Preferences: </strong>
+          <div style={{ fontSize: 12, color: "var(--color-text-muted)", borderTop: "1px solid rgba(25,28,30,0.08)", paddingTop: 12 }}>
+            <strong style={{ color: "var(--color-text)" }}>Preferences: </strong>
             {[
               item.preferences.budget && `Budget: ${item.preferences.budget}`,
               item.preferences.pace && `Pace: ${item.preferences.pace}`,
@@ -228,7 +228,7 @@ export const MyItinerariesPage = () => {
           {!loading && !error && itineraries.length === 0 ? (
             <div style={{ textAlign: "center", padding: "32px 0", color: "var(--color-text-muted)", fontSize: 14 }}>
               No saved itineraries yet.{" "}
-              <a href="/create/seed" style={{ color: "#93c5fd" }}>Plan a new trip</a> and click "Add to my itineraries" at the end.
+              <a href="/create/seed" style={{ color: "var(--color-primary)" }}>Plan a new trip</a> and click "Add to my itineraries" at the end.
             </div>
           ) : null}
 
@@ -245,33 +245,33 @@ export const MyItinerariesPage = () => {
                     textAlign: "left",
                     cursor: "pointer",
                     color: "#e2e8f0",
-                    background: "linear-gradient(135deg, rgba(15,23,42,0.95), rgba(30,41,59,0.9))",
-                    border: "1px solid rgba(148,163,184,0.15)",
-                    transition: "border-color 0.2s, background 0.2s",
+                    background: "#ffffff",
+                    border: "1px solid rgba(25,28,30,0.08)",
+                    transition: "border-color 0.2s, box-shadow 0.2s",
                     width: "100%"
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = "rgba(148,163,184,0.4)";
-                    e.currentTarget.style.background = "linear-gradient(135deg, rgba(15,23,42,1), rgba(30,41,59,1))";
+                    e.currentTarget.style.borderColor = "rgba(49,107,243,0.3)";
+                    e.currentTarget.style.boxShadow = "0 4px 20px rgba(25,28,30,0.08)";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = "rgba(148,163,184,0.15)";
-                    e.currentTarget.style.background = "linear-gradient(135deg, rgba(15,23,42,0.95), rgba(30,41,59,0.9))";
+                    e.currentTarget.style.borderColor = "rgba(25,28,30,0.08)";
+                    e.currentTarget.style.boxShadow = "none";
                   }}
                 >
                   <div className="stack">
                     {/* Title: summary text, then location, then fallback */}
                     <div>
-                      <h3 style={{ margin: 0, fontSize: 16, color: "#f1f5f9", fontWeight: 600 }}>
+                      <h3 style={{ margin: 0, fontSize: 16, color: "var(--color-text)", fontWeight: 600 }}>
                         {item.tripSeed?.summary || item.tripSeed?.location || "Trip"}
                       </h3>
                       {item.tripSeed?.location && item.tripSeed?.summary ? (
-                        <p style={{ margin: "2px 0 0", fontSize: 12, color: "#94a3b8" }}>
+                        <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--color-text-muted)" }}>
                           {item.tripSeed.location}
                         </p>
                       ) : null}
                       {item.tripSeed?.checkIn && item.tripSeed?.checkOut ? (
-                        <p style={{ margin: "3px 0 0", fontSize: 12, color: "#94a3b8" }}>
+                        <p style={{ margin: "3px 0 0", fontSize: 12, color: "var(--color-text-muted)" }}>
                           {String(item.tripSeed.checkIn)} – {String(item.tripSeed.checkOut)}
                         </p>
                       ) : null}
@@ -299,7 +299,7 @@ export const MyItinerariesPage = () => {
 
                     {/* Preferences summary */}
                     {(item.preferences?.budget || item.preferences?.pace) ? (
-                      <div style={{ fontSize: 12, color: "#94a3b8" }}>
+                      <div style={{ fontSize: 12, color: "var(--color-text-muted)" }}>
                         {[
                           item.preferences?.budget,
                           item.preferences?.pace && `${item.preferences.pace} pace`,
@@ -309,13 +309,13 @@ export const MyItinerariesPage = () => {
 
                     {/* Accommodation */}
                     {item.tripSeed?.accommodationName ? (
-                      <div style={{ fontSize: 12, color: "#94a3b8" }}>
+                      <div style={{ fontSize: 12, color: "var(--color-text-muted)" }}>
                         {item.tripSeed.accommodationName}
                       </div>
                     ) : null}
 
                     {/* Saved date */}
-                    <div style={{ fontSize: 11, color: "#64748b", borderTop: "1px solid rgba(148,163,184,0.12)", paddingTop: 8, marginTop: 4 }}>
+                    <div style={{ fontSize: 11, color: "var(--color-text-muted)", borderTop: "1px solid rgba(25,28,30,0.08)", paddingTop: 8, marginTop: 4 }}>
                       Saved {formatDate(item.savedAt)}
                     </div>
                   </div>
